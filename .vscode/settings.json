@@ -1,0 +1,23 @@
+{
+  "editor.mouseWheelZoom": true,
+  "editor.tabSize": 4,
+  "editor.renderIndentGuides": true,
+  "editor.rulers": [160],
+  "window.zoomLevel": 0,
+  "editor.wordWrapColumn": 160,
+  "editor.wordWrap": "wordWrapColumn",
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "html",
+    "vue"
+  ],
+  "vetur.format.defaultFormatter.html": "js-beautify-html",
+  "prettier.tabWidth": 4,
+  "prettier.eslintIntegration": true,
+  "prettier.singleQuote": true,
+  "html.format.wrapLineLength": 160,
+  "html.format.preserveNewLines": false,
+  "extensions.autoUpdate": true
+}
