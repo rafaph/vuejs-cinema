@@ -1,10 +1,18 @@
 <template>
     <div id="movie-list">
         <div v-if="filteredMovies.length">
-            <movie-item v-for="(movie, index) in filteredMovies" :key="index" :movie="movie.movie" :sessions="movie.sessions" :day="day" />
+            <movie-item v-for="movie in filteredMovies" :key="movie.id" :movie="movie.movie">
+                <div class="movie-sessions">
+                    <div v-tooltip="{ seats: session.seats }" v-for="session in filteredSessions(movie.sessions)" :key="session.id" class="session-time-wrapper tooltip-wrapper">
+                        <div class="session-time">
+                            {{ formatSessionTime(session.time) }}
+                        </div>
+                    </div>
+                </div>
+            </movie-item>
         </div>
         <div v-else-if="movies.length" class="no-results">
-            No results.
+            {{ noResults }}
         </div>
         <div v-else class="no-results">
             Loading...
@@ -14,6 +22,7 @@
 
 <script>
 import genres from '../util/genres';
+import times from '../util/times';
 import MovieItem from './MovieItem.vue';
 
 export default {
@@ -40,7 +49,18 @@ export default {
     },
     computed: {
         filteredMovies() {
-            return this.movies.filter(this.moviePassesGenreFilter);
+            return this.movies
+                .filter(this.moviePassesGenreFilter)
+                .filter(movie =>
+                    movie.sessions.find(this.sessionPassesTimeFilter)
+                );
+        },
+        noResults() {
+            const times = this.time.join(', ');
+            const genres = this.genre.join(', ');
+            return `No Results for ${times}${
+                times.length && genres.length ? ', ' : ''
+            }${genres}.`;
         }
     },
     methods: {
@@ -60,6 +80,27 @@ export default {
             });
 
             return matched;
+        },
+        sessionPassesTimeFilter(session) {
+            if (!this.day.isSame(this.$moment(session.time), 'day')) {
+                return false;
+            }
+
+            if (this.time.length === 0 || this.time.length === 2) {
+                return true;
+            }
+
+            if (this.time[0] === times.AFTER_6PM) {
+                return this.$moment(session.time).hour() >= 18;
+            }
+
+            return this.$moment(session.time).hour() < 18;
+        },
+        formatSessionTime(raw) {
+            return this.$moment(raw).format('h:mm A');
+        },
+        filteredSessions(sessions) {
+            return sessions.filter(this.sessionPassesTimeFilter);
         }
     }
 };

@@ -1,49 +1,57 @@
 import Vue from 'vue';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
+import VueRouter from 'vue-router';
 import moment from 'moment-timezone';
 import './style.scss';
 
+
+import { checkFilter, setDay } from './util/bus';
+import Tooltip from './util/tooltip';
 import genres from './util/genres';
-import MovieList from './components/MovieList.vue';
-import MovieFilter from './components/MovieFilter.vue';
+import routes from './util/routes';
 
 Vue.use(VueAxios, axios);
 
-moment.tz.setDefault("America/Sao_Paulo");
+Vue.use(VueRouter);
+
+Vue.use(Tooltip);
+
+moment.tz.setDefault('America/Sao_Paulo');
 Object.defineProperty(Vue.prototype, '$moment', {
     get() {
         return moment;
     }
 });
 
+const bus = new Vue();
+Object.defineProperty(Vue.prototype, '$bus', {
+    get() {
+        return this.$root.bus;
+    }
+});
+
+const router = new VueRouter({
+    routes
+});
+
 new Vue({
     el: '#app',
-    components: {
-        MovieList,
-        MovieFilter
-    },
+    router,
     data: {
         genre: [],
         time: [],
         movies: [],
-        day: moment()
+        day: moment(),
+        bus
     },
     created() {
         this.$http.get('/api').then(response => {
             this.movies = response.data;
         });
-    },
-    methods: {
-        checkFilter(category, title, checked) {
-            if (checked) {
-                this[category].push(title);
-            } else {
-                const index = this[category].indexOf(title);
-                if (index > -1) {
-                    this[category].splice(index, 1);
-                }
-            }
-        }
+
+        this.$bus.$on('check-filter', checkFilter.bind(this));
+
+        this.$bus.$on('set-day', setDay.bind(this));
     }
 });
